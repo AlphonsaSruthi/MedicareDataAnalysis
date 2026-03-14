@@ -1,5 +1,12 @@
-# Exclude all data files
-Data/
+# Never push the large cleaned CSV
+Data/Processed_Data/df_medidata_cleaned.csv
+
+# Exclude uncompressed raw CSVs (use .csv.gz versions instead)
+Data/CMS_Data/*.csv
+Data/HospitalType/*.csv
+
+# Exclude processed/intermediate data files
+Data/Processed_Data/
 
 # Python
 __pycache__/
