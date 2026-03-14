@@ -5,8 +5,9 @@ Data/Processed_Data/df_medidata_cleaned.csv
 Data/CMS_Data/*.csv
 Data/HospitalType/*.csv
 
-# Exclude processed/intermediate data files
-Data/Processed_Data/
+# Exclude all files in Processed_Data but keep the folder
+Data/Processed_Data/*
+!Data/Processed_Data/.gitkeep
 
 # Python
 __pycache__/
