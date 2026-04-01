@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(python3:*)",
-      "Bash(iconv -f utf-8 -t utf-8)"
+      "Bash(iconv -f utf-8 -t utf-8)",
+      "Bash(find 'D:\\\\MASTERS\\\\SPRING 2026\\\\5260 BA Capstone\\\\Medicare DataAnalysis/Scripts' -type f -name *.py -o -name *.ipynb)",
+      "Bash(grep -E \"\\\\.\\(ipynb|py\\)$\")"
     ]
   }
 }
