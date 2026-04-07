@@ -4,7 +4,16 @@
       "Bash(python3:*)",
       "Bash(iconv -f utf-8 -t utf-8)",
       "Bash(find 'D:\\\\MASTERS\\\\SPRING 2026\\\\5260 BA Capstone\\\\Medicare DataAnalysis/Scripts' -type f -name *.py -o -name *.ipynb)",
-      "Bash(grep -E \"\\\\.\\(ipynb|py\\)$\")"
+      "Bash(grep -E \"\\\\.\\(ipynb|py\\)$\")",
+      "Bash(__NEW_LINE_222687b4cf5068a7__ wc:*)",
+      "Bash(__NEW_LINE_b2984898930b3c3f__ cat:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(chcp 65001)",
+      "Read(//d D:/MASTERS/SPRING 2026/5260 BA Capstone/Medicare DataAnalysis/**)",
+      "Bash(python rebuild_rq2.py)",
+      "Bash(python \"D:\\\\MASTERS\\\\SPRING 2026\\\\5260 BA Capstone\\\\Medicare DataAnalysis\\\\Scripts\\\\rebuild_rq2.py\")",
+      "Bash(cd /d \"D:\\\\MASTERS\\\\SPRING 2026\\\\5260 BA Capstone\\\\Medicare DataAnalysis\\\\Scripts\")",
+      "Bash(grep -n '\"\"ename\"\":\\\\|\"\"evalue\"\":\\\\|\"\"traceback\"\":\\\\|\"\"output_type\"\": \"\"error\"\"' \"04_Modeling_RQ2_TemporalSplit.ipynb\")"
     ]
   }
 }
