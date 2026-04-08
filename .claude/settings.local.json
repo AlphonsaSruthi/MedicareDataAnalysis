@@ -13,7 +13,8 @@
       "Bash(python rebuild_rq2.py)",
       "Bash(python \"D:\\\\MASTERS\\\\SPRING 2026\\\\5260 BA Capstone\\\\Medicare DataAnalysis\\\\Scripts\\\\rebuild_rq2.py\")",
       "Bash(cd /d \"D:\\\\MASTERS\\\\SPRING 2026\\\\5260 BA Capstone\\\\Medicare DataAnalysis\\\\Scripts\")",
-      "Bash(grep -n '\"\"ename\"\":\\\\|\"\"evalue\"\":\\\\|\"\"traceback\"\":\\\\|\"\"output_type\"\": \"\"error\"\"' \"04_Modeling_RQ2_TemporalSplit.ipynb\")"
+      "Bash(grep -n '\"\"ename\"\":\\\\|\"\"evalue\"\":\\\\|\"\"traceback\"\":\\\\|\"\"output_type\"\": \"\"error\"\"' \"04_Modeling_RQ2_TemporalSplit.ipynb\")",
+      "Bash(python -c \":*)"
     ]
   }
 }
