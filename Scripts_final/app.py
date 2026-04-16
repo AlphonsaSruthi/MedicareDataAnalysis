@@ -94,14 +94,15 @@ html, body, [class*="css"] {
     margin-top: 0.25rem;
 }
 
-/* Section headings */
+/* Section headings — overridden below in ols-metric block */
 .section-heading {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #0d1f35;
-    border-bottom: 2px solid #2196F3;
-    padding-bottom: 0.4rem;
-    margin: 1.4rem 0 0.9rem 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1565C0;
+    border-bottom: 2.5px solid #1565C0;
+    padding-bottom: 0.45rem;
+    margin: 1.6rem 0 1rem 0;
+    letter-spacing: 0.2px;
 }
 
 /* Prediction result box */
@@ -149,6 +150,13 @@ html, body, [class*="css"] {
 /* Sidebar */
 section[data-testid="stSidebar"] {
     background: #0a1628 !important;
+    min-width: 320px !important;
+    max-width: 320px !important;
+    width: 320px !important;
+}
+section[data-testid="stSidebar"] > div {
+    min-width: 320px !important;
+    padding: 1.5rem 1.2rem !important;
 }
 section[data-testid="stSidebar"] * {
     color: #c8d8e8 !important;
@@ -160,6 +168,15 @@ section[data-testid="stSidebar"] .sidebar-title {
 }
 section[data-testid="stSidebar"] hr {
     border-color: #1e3a5f !important;
+}
+section[data-testid="stSidebar"] table {
+    width: 100% !important;
+    font-size: 0.82rem !important;
+}
+section[data-testid="stSidebar"] td,
+section[data-testid="stSidebar"] th {
+    white-space: nowrap !important;
+    padding: 4px 6px !important;
 }
 
 /* Tab styling */
@@ -180,6 +197,54 @@ button[data-baseweb="tab"] {
     font-size: 0.85rem;
     color: #4a3700;
     margin: 0.8rem 0;
+}
+
+/* Expander headers — match section-heading style */
+details summary p,
+[data-testid="stExpander"] summary p {
+    font-size: 1.25rem !important;
+    font-weight: 800 !important;
+    color: #1565C0 !important;
+    letter-spacing: 0.2px !important;
+    font-family: 'IBM Plex Sans', sans-serif !important;
+}
+[data-testid="stExpander"] {
+    border: none !important;
+    border-bottom: 2.5px solid #1565C0 !important;
+    border-radius: 0 !important;
+    margin: 1.6rem 0 1rem 0 !important;
+}
+
+/* OLS metrics block — smaller font */
+.ols-metric [data-testid="stMetricValue"] {
+    font-size: 1.0rem !important;
+    font-weight: 600 !important;
+}
+.ols-metric [data-testid="stMetricLabel"] {
+    font-size: 0.78rem !important;
+}
+
+/* Section headings — blue, larger, distinct */
+.section-heading {
+    font-size: 1.25rem !important;
+    font-weight: 800 !important;
+    color: #1565C0 !important;
+    border-bottom: 2.5px solid #1565C0 !important;
+    padding-bottom: 0.45rem !important;
+    margin: 1.6rem 0 1rem 0 !important;
+    letter-spacing: 0.2px !important;
+}
+
+/* Key insight plain box */
+.key-insight-box {
+    background: #e8f4fd;
+    border-left: 4px solid #1565C0;
+    border-radius: 0 8px 8px 0;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.95rem;
+    color: #0d1f35;
+    margin: 0.8rem 0;
+    font-weight: 500;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -299,20 +364,7 @@ with st.sidebar:
                            help="Toggle ON to load files from Google Drive. OFF = local files.")
 
     st.markdown("---")
-    st.markdown("**📦 Models**")
-    st.markdown("""
-- RQ2: XGBoost (Temporal Split)
-- RQ3: XGBoost (Random Split)
-    """)
-    st.markdown("**📊 Performance**")
-    st.markdown("""
-| | R² | MAE |
-|--|--|--|
-| RQ2 | 0.682 | 12 discharges |
-| RQ3 | 0.922 | $2,190 |
-    """)
-    st.markdown("---")
-    st.markdown("**🗓️ Data Source**")
+    st.markdown("**Data Source**")
     st.markdown("CMS Medicare Inpatient  \n2017–2023 | ~1.18M records")
     st.markdown("---")
     st.caption("Built with Streamlit · Group 6")
@@ -348,11 +400,12 @@ with st.spinner("Loading data and models..."):
 # ============================================================
 # TABS
 # ============================================================
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "  EDA — Data Exploration  ",
-    "  Predict  ",
+    "  Model Results  ",
     "  SHAP — Explainability  ",
-    "  2024 Forecast  "
+    "  2024 Forecast  ",
+    "  Predict  "
 ])
 
 
@@ -510,8 +563,232 @@ with tab1:
         st.markdown("- Rural hospitals recover **36¢ per $1 billed** vs Metropolitan **19¢**")
         st.markdown("- Metropolitan carries the **largest payment gap** per discharge")
 
-    # ── Row 3: Discharge distribution + Payment ratio dist ─
-    st.markdown('<div class="section-heading">Distribution Analysis</div>', unsafe_allow_html=True)
+    # ── Metric definitions ─────────────────────────────────
+    st.markdown('<div class="section-heading">Understanding the Metrics</div>', unsafe_allow_html=True)
+
+    def_col1, def_col2 = st.columns(2)
+    with def_col1:
+        st.markdown("""
+        <div style="background:#fff3e0;border-left:4px solid #EF6C00;border-radius:0 8px 8px 0;padding:1rem 1.2rem;margin-bottom:0.5rem;">
+            <div style="font-size:1rem;font-weight:800;color:#E65100;margin-bottom:0.5rem;">Payment Gap</div>
+            <div style="font-size:1.1rem;font-family:monospace;font-weight:700;color:#0d1f35;margin-bottom:0.5rem;">
+                Billed &minus; Paid
+            </div>
+            <div style="font-size:0.88rem;color:#4a3700;">
+                The <strong>dollar amount</strong> the hospital never receives from Medicare.<br><br>
+                <strong>Example:</strong> Hospital bills $100,000 &rarr; Medicare pays $20,000
+                &rarr; Gap = <strong>$80,000</strong><br><br>
+                Tells you: <em>How much money is missing?</em>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with def_col2:
+        st.markdown("""
+        <div style="background:#e8f5e9;border-left:4px solid #2E7D32;border-radius:0 8px 8px 0;padding:1rem 1.2rem;margin-bottom:0.5rem;">
+            <div style="font-size:1rem;font-weight:800;color:#1B5E20;margin-bottom:0.5rem;">Payment Ratio</div>
+            <div style="font-size:1.1rem;font-family:monospace;font-weight:700;color:#0d1f35;margin-bottom:0.5rem;">
+                Paid &divide; Billed
+            </div>
+            <div style="font-size:0.88rem;color:#1a3700;">
+                The <strong>fraction of the bill</strong> Medicare actually covers.<br><br>
+                <strong>Example:</strong> Medicare pays $20,000 &divide; $100,000 billed
+                = <strong>0.20</strong> (20 cents per $1 billed)<br><br>
+                Tells you: <em>How fair is Medicare's coverage?</em>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ── Ownership × Geography Heatmap ──────────────────────
+    st.markdown('<div class="section-heading">Ownership × Geography Interaction</div>', unsafe_allow_html=True)
+
+    own_geo_df = df[
+        df['Ownership_Type'].isin(['For-Profit','Non-Profit','Government']) &
+        df['RUCA_Group'].isin(['Metropolitan','Micropolitan','Small Town','Rural'])
+    ].copy()
+
+    pivot_gap = own_geo_df.pivot_table(
+        values='payment_gap_per_discharge',
+        index='Ownership_Type',
+        columns='RUCA_Group',
+        aggfunc='median'
+    ).reindex(index=['For-Profit','Government','Non-Profit'],
+              columns=['Metropolitan','Micropolitan','Small Town','Rural'])
+
+    pivot_ratio = own_geo_df.pivot_table(
+        values='Payment_Ratio',
+        index='Ownership_Type',
+        columns='RUCA_Group',
+        aggfunc='median'
+    ).reindex(index=['For-Profit','Government','Non-Profit'],
+              columns=['Metropolitan','Micropolitan','Small Town','Rural'])
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 4))
+
+    # Left — Payment Gap heatmap
+    im1 = axes[0].imshow(pivot_gap.values, cmap='YlOrRd', aspect='auto')
+    axes[0].set_xticks(range(4))
+    axes[0].set_xticklabels(['Metropolitan','Micropolitan','Small Town','Rural'], fontsize=9)
+    axes[0].set_yticks(range(3))
+    axes[0].set_yticklabels(['For-Profit','Government','Non-Profit'], fontsize=9)
+    axes[0].set_xlabel('Geography (RUCA Group)', fontsize=9)
+    axes[0].set_ylabel('Ownership Type', fontsize=9)
+    axes[0].set_title('Median Payment Gap ($000s)\n(dark = larger gap)', fontsize=10, fontweight='bold')
+    for i in range(3):
+        for j in range(4):
+            val = pivot_gap.values[i, j]
+            if not np.isnan(val):
+                axes[0].text(j, i, f'${val/1000:.0f}K', ha='center', va='center',
+                             fontsize=9, fontweight='bold', color='white' if val > pivot_gap.values.max()*0.6 else 'black')
+    plt.colorbar(im1, ax=axes[0]).set_label('Payment Gap ($)', fontsize=8)
+
+    # Right — Payment Ratio heatmap
+    im2 = axes[1].imshow(pivot_ratio.values, cmap='RdYlGn', aspect='auto', vmin=0.05, vmax=0.50)
+    axes[1].set_xticks(range(4))
+    axes[1].set_xticklabels(['Metropolitan','Micropolitan','Small Town','Rural'], fontsize=9)
+    axes[1].set_yticks(range(3))
+    axes[1].set_yticklabels(['For-Profit','Government','Non-Profit'], fontsize=9)
+    axes[1].set_xlabel('Geography (RUCA Group)', fontsize=9)
+    axes[1].set_ylabel('Ownership Type', fontsize=9)
+    axes[1].set_title('Median Payment Ratio\n(green = Medicare pays higher share of billed charge)', fontsize=10, fontweight='bold')
+    for i in range(3):
+        for j in range(4):
+            val = pivot_ratio.values[i, j]
+            if not np.isnan(val):
+                axes[1].text(j, i, f'{val:.3f}', ha='center', va='center',
+                             fontsize=9, fontweight='bold', color='white' if val < 0.15 else 'black')
+    plt.colorbar(im2, ax=axes[1]).set_label('Payment Ratio', fontsize=8)
+
+    fig.suptitle('Ownership x Geography Interaction — Payment Gap and Payment Ratio Heatmaps',
+                 fontsize=11, fontweight='bold')
+    fig.tight_layout()
+    st.pyplot(fig); plt.close()
+
+    st.markdown("- **Non-Profit Metropolitan** hospitals have the worst combination — largest gap AND lowest ratio")
+    st.markdown("- **Government Rural** hospitals recover the highest share — best ratio across all groups")
+    st.markdown("- Every ownership type recovers a better ratio in Rural areas — geography consistently improves coverage")
+
+    # ── Row 3: OLS Trend — DRG Weight vs Payment Gap (Graph 1) ───
+    with st.expander("DRG Severity vs Payment Gap — OLS Trend"):
+        st.markdown(
+            "**X-axis:** How complex the procedure is (DRG weight) &nbsp;|&nbsp; "
+            "**Y-axis:** How big the dollar gap is between billed and paid &nbsp;|&nbsp; "
+            "**Color:** Payment ratio — red = low ratio (severe underpayment), green = higher ratio"
+        )
+
+        drg_scatter = (df.groupby('DRG_Cd')
+                         .agg(median_ratio  = ('Payment_Ratio', 'median'),
+                              median_weight = ('DRG_Weight',    'median'),
+                              median_gap    = ('Payment_Gap',   'median'))
+                         .reset_index()
+                         .dropna())
+
+        from scipy import stats as scipy_stats
+        slope_gap, intercept_gap, r_gap, _, _ = scipy_stats.linregress(
+            drg_scatter['median_weight'], drg_scatter['median_gap']
+        )
+        x_line = np.linspace(drg_scatter['median_weight'].min(),
+                              drg_scatter['median_weight'].max(), 100)
+        y_line = slope_gap * x_line + intercept_gap
+
+        fig, ax = plt.subplots(figsize=(13, 6))
+        sc = ax.scatter(
+            drg_scatter['median_weight'],
+            drg_scatter['median_gap'],
+            c=drg_scatter['median_ratio'],
+            cmap='RdYlGn',
+            s=45, alpha=0.85,
+            edgecolors='none',
+            vmin=0.05, vmax=0.50
+        )
+        ax.plot(x_line, y_line, 'k--', linewidth=2,
+                label=f'OLS trend  (slope = ${slope_gap:,.0f} per unit weight)')
+        cbar = plt.colorbar(sc, ax=ax)
+        cbar.set_label('Payment Ratio', fontsize=9)
+        cbar.ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f'{x:.2f}'))
+        ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f'${x/1000:.0f}K'))
+        ax.set_xlabel('Median DRG Severity Weight', fontsize=11)
+        ax.set_ylabel('Median Payment Gap ($000s)', fontsize=11)
+        ax.set_title(
+            f'DRG Weight vs Payment Gap  (r = {r_gap:.2f})\n'
+            f'Each dot = one DRG  |  Colour = payment ratio  |  Higher weight → larger dollar gap',
+            fontsize=11, fontweight='bold'
+        )
+        ax.legend(fontsize=9)
+        ax.spines[['top', 'right']].set_visible(False)
+        ax.grid(alpha=0.2)
+        fig.tight_layout()
+        st.pyplot(fig); plt.close()
+
+        st.markdown(
+            '<div class="key-insight-box">' +
+            '<strong>Key Insight:</strong> Higher complexity = Medicare pays more dollars, ' +
+            'but the gap in dollars keeps growing because <strong>billed charges grow even faster</strong>.' +
+            '</div>',
+            unsafe_allow_html=True
+        )
+
+    # ── Row 4: Top 20 DRGs — coloured by payment ratio (matches notebook) ──
+    st.markdown('<div class="section-heading">Top 20 DRGs by Median Payment Gap</div>', unsafe_allow_html=True)
+
+    drg_gap = (df.groupby(['DRG_Cd','DRG_Desc'])
+                 .agg(median_gap   = ('Payment_Gap',    'median'),
+                      median_ratio = ('Payment_Ratio',  'median'),
+                      total_dschrg = ('Tot_Dschrgs',    'sum'))
+                 .reset_index()
+                 .sort_values('median_gap', ascending=False)
+                 .head(20))
+    drg_gap['Label'] = drg_gap['DRG_Cd'].astype(str) + ': ' + drg_gap['DRG_Desc'].str[:55]
+
+    # Colour by payment ratio — matches notebook colour coding
+    def drg_color(ratio):
+        if ratio < 0.15:  return '#C62828'   # red   — severe underpayment
+        elif ratio < 0.25: return '#EF6C00'  # orange — moderate
+        else:              return '#1565C0'  # blue  — relatively better
+
+    colors = [drg_color(r) for r in drg_gap['median_ratio']]
+
+    fig, ax = plt.subplots(figsize=(13, 7))
+    bars = ax.barh(drg_gap['Label'], drg_gap['median_gap'], color=colors, alpha=0.9)
+    ax.invert_yaxis()
+    ax.xaxis.set_major_formatter(mticker.FuncFormatter(lambda x,_: f'${x/1000:.0f}K'))
+    ax.set_xlabel('Median Payment Gap ($000s)', fontsize=10)
+    ax.set_title(
+        'Top 20 DRGs by Median Payment Gap\n(payment gap = billed charge − Medicare payment)',
+        fontsize=11, fontweight='bold'
+    )
+    ax.spines[['top','right']].set_visible(False)
+    ax.grid(axis='x', alpha=0.25)
+
+    # Annotate ratio on each bar (matching notebook)
+    for bar, v, r in zip(bars, drg_gap['median_gap'], drg_gap['median_ratio']):
+        ax.text(v + 8000, bar.get_y()+bar.get_height()/2,
+                f'ratio={r:.2f}', va='center', fontsize=7.5, color='#333333')
+
+    # Legend
+    from matplotlib.patches import Patch
+    legend_elements = [
+        Patch(facecolor='#C62828', label='Payment ratio < 0.15  (severe underpayment)'),
+        Patch(facecolor='#EF6C00', label='Payment ratio 0.15–0.25'),
+        Patch(facecolor='#1565C0', label='Payment ratio > 0.25'),
+    ]
+    ax.legend(handles=legend_elements, fontsize=8, loc='lower right')
+    fig.tight_layout()
+    st.pyplot(fig); plt.close()
+
+    st.markdown("- DRG 927 (Extensive Burns) has the largest gap — **$1.73M** with only 17% of charges reimbursed")
+    st.markdown("- DRG 18 (CAR T-Cell therapy) — gap of **$1.28M**, ratio 0.24 — near the severe threshold")
+    st.markdown("- Most high-gap DRGs have ratios below 0.25 — indicating **systematic underpayment for complex procedures**")
+
+    # ── Summary stats table ────────────────────────────────
+    with st.expander("📋 Summary Statistics Table"):
+        key_cols = ['Tot_Dschrgs','Avg_Submtd_Cvrd_Chrg','Avg_Mdcr_Pymt_Amt','Payment_Gap','Payment_Ratio']
+        summary = df[key_cols].describe().round(2)
+        summary = summary.rename(index={'50%':'median'})
+        st.dataframe(summary, use_container_width=True)
+
+    # ── Distribution Analysis (moved to last) ─────────────
+    st.markdown('<div class="section-heading">Distribution Analysis — Log Transformation</div>', unsafe_allow_html=True)
 
     col5, col6 = st.columns(2)
 
@@ -546,44 +823,14 @@ with tab1:
         fig.tight_layout()
         st.pyplot(fig); plt.close()
 
-    # ── Row 4: Top DRGs by payment gap ────────────────────
-    st.markdown('<div class="section-heading">Top 15 DRGs by Median Payment Gap</div>', unsafe_allow_html=True)
-
-    drg_gap = (df.groupby(['DRG_Cd','DRG_Desc'])
-                 .agg(median_gap   = ('Payment_Gap', 'median'),
-                      total_dschrg = ('Tot_Dschrgs', 'sum'))
-                 .reset_index()
-                 .sort_values('median_gap', ascending=False)
-                 .head(15))
-    drg_gap['Label'] = drg_gap['DRG_Cd'].astype(str) + ': ' + drg_gap['DRG_Desc'].str[:45]
-
-    fig, ax = plt.subplots(figsize=(12, 4.5))
-    bars = ax.barh(drg_gap['Label'], drg_gap['median_gap'],
-                   color='#1565C0', alpha=0.85)
-    ax.invert_yaxis()
-    ax.xaxis.set_major_formatter(mticker.FuncFormatter(lambda x,_: f'${x/1000:.0f}K'))
-    ax.set_xlabel('Median Payment Gap')
-    ax.set_title('Top 15 DRGs with Largest Medicare Payment Gap', fontsize=11, fontweight='bold')
-    ax.spines[['top','right']].set_visible(False)
-    ax.grid(axis='x', alpha=0.25)
-    for bar, v in zip(bars, drg_gap['median_gap']):
-        ax.text(v + 500, bar.get_y()+bar.get_height()/2,
-                f'${v/1000:.0f}K', va='center', fontsize=8)
-    fig.tight_layout()
-    st.pyplot(fig); plt.close()
-
-    # ── Summary stats table ────────────────────────────────
-    with st.expander("📋 Summary Statistics Table"):
-        key_cols = ['Tot_Dschrgs','Avg_Submtd_Cvrd_Chrg','Avg_Mdcr_Pymt_Amt','Payment_Gap','Payment_Ratio']
-        summary = df[key_cols].describe().round(2)
-        summary = summary.rename(index={'50%':'median'})
-        st.dataframe(summary, use_container_width=True)
+    st.markdown("- All financial variables are **right-skewed** — log transformation makes distributions normal")
+    st.markdown("- Log transformation is applied to both targets before modeling — back-transformed with `expm1()` for predictions")
 
 
 # ============================================================
-# TAB 2 — PREDICT
+# TAB 5 — PREDICT
 # ============================================================
-with tab2:
+with tab5:
 
     st.markdown('<div class="section-heading">Interactive Prediction — RQ2 & RQ3</div>', unsafe_allow_html=True)
     st.markdown("""
@@ -1026,3 +1273,232 @@ with tab4:
                            data=csv_rq3,
                            file_name="RQ3_Predictions_2024.csv",
                            mime="text/csv")
+
+
+# ============================================================
+# TAB 2 — MODEL RESULTS
+# ============================================================
+with tab2:
+
+    st.markdown('<div class="section-heading">Model Comparison — All 3 Models Tried</div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="info-box">
+    Both RQ2 and RQ3 tested three models: Linear Regression (baseline), Random Forest (intermediate),
+    and XGBoost (final best model). The <strong style="background:#d4edda;padding:1px 4px;border-radius:3px;">green highlighted row</strong>
+    is the XGBoost Test set result — the final honest evaluation on unseen data.
+    </div>
+    """, unsafe_allow_html=True)
+
+    rq2_tab, rq3_tab = st.tabs(["  RQ2 — Discharge Volume  ", "  RQ3 — Medicare Reimbursement  "])
+
+    # ── RQ2 ───────────────────────────────────────────────
+    with rq2_tab:
+
+        st.markdown('<div class="section-heading">RQ2 — Predicting Medicare Discharge Volume</div>', unsafe_allow_html=True)
+        st.markdown("**Target:** `Tot_Dschrgs` (log-transformed) | **Split:** Temporal — Train 2017–2021, Val 2022, Test 2023")
+
+        # ── KPI Cards at top — XGBoost Test Set ──
+        st.markdown("#### Final Test Set Result — XGBoost")
+        st.markdown("""
+        <div class="metric-row">
+            <div class="metric-card green">
+                <div class="label">R² (log scale)</div>
+                <div class="value">0.682</div>
+                <div class="sub">68.2% variance explained</div>
+            </div>
+            <div class="metric-card green">
+                <div class="label">R² (count scale)</div>
+                <div class="value">0.581</div>
+                <div class="sub">58.1% on real discharge counts</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">MAE (discharges)</div>
+                <div class="value">12</div>
+                <div class="sub">Average prediction error</div>
+            </div>
+            <div class="metric-card orange">
+                <div class="label">MAPE</div>
+                <div class="value">31.3%</div>
+                <div class="sub">Relative error per prediction</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("#### Full Results — Train / Validation / Test")
+
+        rq2_full = pd.DataFrame({
+            'Model': [
+                'Linear Regression','Linear Regression',
+                'Random Forest','Random Forest',
+                'XGBoost','XGBoost','XGBoost'
+            ],
+            'Split':            ['Train','Val','Train','Val','Train','Val','Test'],
+            'RMSE':             [0.5445, 0.5349, 0.4045, 0.4157, 0.3273, 0.3547, 0.3804],
+            'MAE (log)':        [0.4264, 0.4098, 0.3168, 0.3249, 0.2529, 0.2736, 0.2914],
+            'MAE (discharges)': [62,     66,     13,     13,     10,     10,     12],
+            'MAPE':             ['79.1%','92.9%','34.7%','36.8%','27.4%','30.4%','31.3%'],
+            'R²':               [0.407,  0.387,  0.673,  0.630,  0.786,  0.731,  0.682],
+            'R² (count)':       ['-','-',    0.649,  0.629,  0.836,  0.799,  0.581],
+        })
+
+        # Green highlight for XGBoost Test row — rendered as HTML (no jinja2 needed)
+        def df_to_html_green(df, green_model, green_split):
+            cols = df.columns.tolist()
+            header = "<tr>" + "".join(f"<th style='background:#f0f4f9;font-weight:700;padding:6px 10px;text-align:left;border-bottom:2px solid #ddd;'>{c}</th>" for c in cols) + "</tr>"
+            rows = ""
+            for _, row in df.iterrows():
+                is_green = (row['Model'] == green_model and row['Split'] == green_split)
+                bg = "background-color:#d4edda;font-weight:bold;" if is_green else ""
+                cells = "".join(f"<td style='padding:6px 10px;border-bottom:1px solid #eee;{bg}'>{row[c]}</td>" for c in cols)
+                rows += f"<tr>{cells}</tr>"
+            return f"<table style='width:100%;border-collapse:collapse;font-size:0.88rem;'><thead>{header}</thead><tbody>{rows}</tbody></table>"
+
+        st.markdown(df_to_html_green(rq2_full, 'XGBoost', 'Test'), unsafe_allow_html=True)
+
+        # Bar chart
+        st.markdown("#### Model Performance Comparison")
+        fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+        models   = ['Linear\nRegression', 'Random\nForest', 'XGBoost']
+        r2_vals  = [0.387, 0.630, 0.731]
+        mae_vals = [66, 13, 10]
+        colors   = ['#C62828', '#EF6C00', '#1565C0']
+
+        bars = axes[0].bar(models, r2_vals, color=colors, width=0.5, edgecolor='white')
+        axes[0].set_title('R² — Validation Set (higher = better)', fontsize=10, fontweight='bold')
+        axes[0].set_ylim(0, 1); axes[0].spines[['top','right']].set_visible(False)
+        axes[0].axhline(0.7, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+        for bar, v in zip(bars, r2_vals):
+            axes[0].text(bar.get_x()+bar.get_width()/2, v+0.02, f'{v:.3f}', ha='center', fontsize=10, fontweight='bold')
+
+        bars2 = axes[1].bar(models, mae_vals, color=colors, width=0.5, edgecolor='white')
+        axes[1].set_title('MAE — Validation Set (discharges, lower = better)', fontsize=10, fontweight='bold')
+        axes[1].spines[['top','right']].set_visible(False)
+        for bar, v in zip(bars2, mae_vals):
+            axes[1].text(bar.get_x()+bar.get_width()/2, v+0.3, f'{v}', ha='center', fontsize=10, fontweight='bold')
+
+        fig.suptitle('RQ2 — Model Comparison', fontsize=11, fontweight='bold')
+        fig.tight_layout(); st.pyplot(fig); plt.close()
+
+        # Why XGBoost
+        st.markdown("#### Why XGBoost Was Selected")
+        st.markdown('''
+        <div class="key-insight-box">
+        <strong>Best R² (0.731)</strong> and lowest MAE (10 discharges) on validation set.
+        Train/Val gap of 0.055 is slightly above 0.05 but acceptable given the COVID structural break in 2020–2021.
+        Linear Regression failed on the count scale (negative R²) confirming non-linear relationships.
+        </div>''', unsafe_allow_html=True)
+
+        # Why LR failed
+        st.markdown("#### Why Linear Regression Failed")
+        st.dataframe(pd.DataFrame({
+            'Metric':  ['R² (log scale)', 'R² (count scale)', 'MAE (discharges)', 'MAPE'],
+            'Train':   ['0.407', '-32,300', '62', '79.1%'],
+            'Val':     ['0.387', '-39,835', '66', '92.9%'],
+            'Reason':  [
+                'Captures only 39% of variance — non-linear patterns missed',
+                'Negative R² — worse than predicting the mean on real counts',
+                'Off by 66 discharges on average — unacceptable for planning',
+                '93% error — completely unreliable for discharge forecasting'
+            ]
+        }), use_container_width=True, hide_index=True)
+
+    # ── RQ3 ───────────────────────────────────────────────
+    with rq3_tab:
+
+        st.markdown('<div class="section-heading">RQ3 — Predicting Medicare Reimbursement</div>', unsafe_allow_html=True)
+        st.markdown("**Target:** `Avg_Mdcr_Pymt_Amt` (log-transformed) | **Split:** Random — 70% Train, 15% Val, 15% Test")
+
+        # ── KPI Cards at top — XGBoost Test Set ──
+        st.markdown("#### Final Test Set Result — XGBoost")
+        st.markdown(f"""
+        <div class="metric-row">
+            <div class="metric-card green">
+                <div class="label">R² (log scale)</div>
+                <div class="value">0.9216</div>
+                <div class="sub">92.2% variance explained</div>
+            </div>
+            <div class="metric-card green">
+                <div class="label">R² ($ scale)</div>
+                <div class="value">0.8511</div>
+                <div class="sub">85.1% on real dollar amounts</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">MAE ($)</div>
+                <div class="value">$2,190</div>
+                <div class="sub">Average prediction error</div>
+            </div>
+            <div class="metric-card orange">
+                <div class="label">MAPE</div>
+                <div class="value">14.3%</div>
+                <div class="sub">Relative error per prediction</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("#### Full Results — Train / Validation / Test")
+
+        rq3_full = pd.DataFrame({
+            'Model': [
+                'Linear Regression','Linear Regression',
+                'Random Forest','Random Forest',
+                'XGBoost','XGBoost','XGBoost'
+            ],
+            'Split':    ['Train','Val','Train','Val','Train','Val','Test'],
+            'RMSE':     [0.407,  0.410,  0.243,  0.244,  0.191,  0.199,  0.199],
+            'MAE (log)':[0.297,  0.298,  0.182,  0.183,  0.138,  0.144,  0.144],
+            'MAE ($)':  ['$82,448','$115,344','$2,790','$2,827','$2,069','$2,205','$2,190'],
+            'MAPE':     ['57.1%','66.9%','17.9%','18.0%','13.7%','14.3%','14.3%'],
+            'R²':       [0.673,  0.669,  0.884,  0.882,  0.928,  0.922,  0.922],
+            'R² ($)':   ['-',    '-',    0.736,  0.732,  0.879,  0.850,  0.851],
+        })
+
+        st.markdown(df_to_html_green(rq3_full, 'XGBoost', 'Test'), unsafe_allow_html=True)
+
+        # Bar chart
+        st.markdown("#### Model Performance Comparison")
+        fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+        models_r3 = ['Linear\nRegression', 'Random\nForest', 'XGBoost']
+        r2_r3     = [0.669, 0.882, 0.922]
+        mae_r3    = [115344, 2827, 2205]
+        colors_r3 = ['#C62828', '#EF6C00', '#1565C0']
+
+        bars3 = axes[0].bar(models_r3, r2_r3, color=colors_r3, width=0.5, edgecolor='white')
+        axes[0].set_title('R² — Validation Set (higher = better)', fontsize=10, fontweight='bold')
+        axes[0].set_ylim(0, 1); axes[0].spines[['top','right']].set_visible(False)
+        axes[0].axhline(0.9, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+        for bar, v in zip(bars3, r2_r3):
+            axes[0].text(bar.get_x()+bar.get_width()/2, v+0.01, f'{v:.3f}', ha='center', fontsize=10, fontweight='bold')
+
+        bars4 = axes[1].bar(models_r3, mae_r3, color=colors_r3, width=0.5, edgecolor='white')
+        axes[1].set_title('MAE ($) — Validation Set (lower = better)', fontsize=10, fontweight='bold')
+        axes[1].spines[['top','right']].set_visible(False)
+        axes[1].yaxis.set_major_formatter(mticker.FuncFormatter(lambda x,_: f'${x/1000:.0f}K'))
+        for bar, v in zip(bars4, mae_r3):
+            axes[1].text(bar.get_x()+bar.get_width()/2, v+500, f'${v/1000:.0f}K', ha='center', fontsize=10, fontweight='bold')
+
+        fig.suptitle('RQ3 — Model Comparison', fontsize=11, fontweight='bold')
+        fig.tight_layout(); st.pyplot(fig); plt.close()
+
+        # Why XGBoost
+        st.markdown("#### Why XGBoost Was Selected")
+        st.markdown('''
+        <div class="key-insight-box">
+        <strong>Best R² (0.922)</strong> and lowest MAE ($2,205) on validation set.
+        Near-zero Train/Val gap (0.001) confirms no overfitting. Linear Regression produced
+        a <strong>negative R² on the dollar scale</strong> — confirming log-scale OLS is unsuitable
+        for Medicare payment prediction.
+        </div>''', unsafe_allow_html=True)
+
+        # Why LR failed
+        st.markdown("#### Why Linear Regression Failed")
+        st.dataframe(pd.DataFrame({
+            'Metric':  ['R² (log scale)', 'R² ($ scale)', 'MAE ($)', 'MAPE'],
+            'Train':   ['0.673', 'Negative', '$82,448', '57.1%'],
+            'Val':     ['0.669', '-273,793', '$115,344', '66.9%'],
+            'Reason':  [
+                'Looks decent in log scale — misleading',
+                'Negative on dollar scale — worse than predicting the mean',
+                'Off by $115K per discharge — operationally useless',
+                '67% average error — cannot be used for payment forecasting'
+            ]
+        }), use_container_width=True, hide_index=True)
