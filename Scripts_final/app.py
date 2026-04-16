@@ -254,21 +254,21 @@ details summary p,
 # DATA LOADING — Google Drive OR Local
 # ============================================================
 
-# ── File ID mapping — replace with your actual Google Drive file IDs ──
+# ── File ID mapping — Google Drive file IDs ──
 GDRIVE_IDS = {
-    'data':         'YOUR_DATA_FILE_ID',        # df_medidata_clean.parquet
-    'rq2_model':    'YOUR_RQ2_MODEL_FILE_ID',   # rq2_xgb_model.pkl
-    'rq3_model':    'YOUR_RQ3_MODEL_FILE_ID',   # rq3_xgb_model.pkl
-    'hosp_te':      'YOUR_HOSP_TE_FILE_ID',     # hosp_te_lookup.pkl
-    'drg_te':       'YOUR_DRG_TE_FILE_ID',      # drg_te_lookup.pkl
-    'rq2_shap_v':   'YOUR_RQ2_SHAP_V_FILE_ID',  # rq2_shap_values.npy
-    'rq2_shap_b':   'YOUR_RQ2_SHAP_B_FILE_ID',  # rq2_shap_base.npy
-    'rq2_shap_x':   'YOUR_RQ2_SHAP_X_FILE_ID',  # rq2_shap_X.parquet
-    'rq3_shap_v':   'YOUR_RQ3_SHAP_V_FILE_ID',  # rq3_shap_values.npy
-    'rq3_shap_b':   'YOUR_RQ3_SHAP_B_FILE_ID',  # rq3_shap_base.npy
-    'rq3_shap_x':   'YOUR_RQ3_SHAP_X_FILE_ID',  # rq3_shap_X.parquet
-    'rq2_forecast': 'YOUR_RQ2_FORECAST_FILE_ID', # RQ2_Predictions_2024_WithCI.csv
-    'rq3_forecast': 'YOUR_RQ3_FORECAST_FILE_ID', # RQ3_Predictions_2024.csv
+    'data':         '17_miiDElUZx6XdjOY25h94BPT8qsPGlj',  # df_medidata_clean.parquet
+    'rq2_model':    '1-XerMFdG_JrDLizEBbFST_y5VnF3GIDM',  # rq2_xgb_model.pkl
+    'rq3_model':    '1INIarM2u2b4UK0tvVqkBqvYwRCeZ1l6j',   # rq3_xgb_model.pkl
+    'hosp_te':      '1CS88pPNFI4RwFDF_7ToYPNOpY3xmMZMu',   # hosp_te_lookup.pkl
+    'drg_te':       '1thod9X_GOOk9ur9eD7oKa0qNqj9DAh9t',   # drg_te_lookup.pkl
+    'rq2_shap_v':   '1clJTycU_WGrb7xE1oL8w3L-0k5EOvI6U',  # rq2_shap_values.npy
+    'rq2_shap_b':   '10kcgLxbpnDApVGT9lKOHN-c2fVEQNCGS',  # rq2_shap_base.npy
+    'rq2_shap_x':   '1hqk74K_C_aep6hzq7oNGiJunveqIEhdD',  # rq2_shap_X.parquet
+    'rq3_shap_v':   '1WB77ZqytGwb_uqOYQ0PaZ_Na0uukm7R2',  # rq3_shap_values.npy
+    'rq3_shap_b':   '1HBxE7feMGxB8WTi0CBEcBrmfzmEFrfCO',  # rq3_shap_base.npy
+    'rq3_shap_x':   '1kfDDbB7hYvwBW9Ny3CgG4mkCF5sOLVJ6',  # rq3_shap_X.parquet
+    'rq2_forecast': '1m2flO17NvA4h0cj0X-O-bNs3MwDYY4Ei',  # RQ2_Predictions_2024_WithCI.csv
+    'rq3_forecast': '1PXCAdM7s4dypMLXScP2hjaNCrDpwTYka',  # RQ3_Predictions_2024.csv
 }
 
 # ── Local paths — used when running on your own machine ──
@@ -360,7 +360,13 @@ with st.sidebar:
     st.markdown('<div class="sidebar-title">Medicare Analytics</div>', unsafe_allow_html=True)
     st.markdown("---")
 
-    use_gdrive = st.toggle("☁️ Load from Google Drive", value=False,
+    # Auto-detect: default ON if running on Streamlit Cloud, OFF if local
+    import os
+    is_cloud = os.environ.get('STREAMLIT_SHARING_MODE') == 'streamlit' or \
+               'HOSTNAME' in os.environ and 'streamlit' in os.environ.get('HOSTNAME','').lower() or \
+               not os.path.exists('../Data/Processed_Data/df_medidata_clean.parquet')
+
+    use_gdrive = st.toggle("☁️ Load from Google Drive", value=is_cloud,
                            help="Toggle ON to load files from Google Drive. OFF = local files.")
 
     st.markdown("---")
